@@ -39,7 +39,20 @@ export default class JsxParser extends Component {
       return []
     }
 
-    return parsed.map(this.parseExpression).filter(Boolean)
+    let i = 1
+    function addKeyProps(element) {
+      if (element && element.props) {
+        const children = (element.props.children && Array.isArray(element.props.children))
+          ? element.props.children.map(addKeyProps)
+          : element.props.children
+
+        return React.cloneElement(element, { key: i++ }, children)
+      } else {
+        return element
+      }
+    }
+
+    return parsed.map(this.parseExpression).map(addKeyProps).filter(Boolean)
   }
 
   parseExpression = (expression) => {

@@ -857,4 +857,75 @@ describe('JsxParser Component', () => {
       )).toThrow()
     })
   })
+  describe('list keys', () => {
+    const foundKeys = []
+    const assertHasUniqueKey = (element) => {
+      const {key} = element
+      expect(key).toBeTruthy()
+      expect(typeof key).toEqual('string')
+      expect(foundKeys.includes(key)).toBeFalsy()
+      foundKeys.push(key)
+    }
+
+    beforeEach(() => {
+      foundKeys.length = 0
+    })
+    
+    it('adds unique key prop to each parsed child', () => {
+      const { component } = render(
+        <JsxParser
+          jsx={
+            '<h1>Header</h1>'
+            + '<div class="foo">Foo</div>'
+            + '<span class="bar">Bar</span>'
+          }
+        />
+      )
+
+      assertHasUniqueKey(component.ParsedChildren[0])
+      assertHasUniqueKey(component.ParsedChildren[1])
+      assertHasUniqueKey(component.ParsedChildren[2])
+    })
+    it('adds unique key prop to each nested child', () => {
+      const { component } = render(
+        <JsxParser
+          jsx={
+            '<h1>Header</h1>'
+            + '<ul>'
+            + '<li>Item 1</li>'
+            + '<li>Item 2</li>'
+            + '</ul>'
+          }
+        />
+      )
+
+      assertHasUniqueKey(component.ParsedChildren[0])
+      assertHasUniqueKey(component.ParsedChildren[1])
+      assertHasUniqueKey(component.ParsedChildren[1].props.children[0])
+      assertHasUniqueKey(component.ParsedChildren[1].props.children[1])
+    })
+    it('adds unique key prop to each deeply nested child', () => {
+      const { component } = render(
+        <JsxParser
+          jsx={
+            '<h1>Header</h1>'
+            + '<div>'
+            + '<ul>'
+            + '<li>Item 1</li>'
+            + '<li>Item 2</li>'
+            + '</ul>'
+            + '<p>Footer</p>'
+            + '</div>'
+          }
+        />
+      )
+
+      assertHasUniqueKey(component.ParsedChildren[0])  // h1
+      assertHasUniqueKey(component.ParsedChildren[1])  // div
+      assertHasUniqueKey(component.ParsedChildren[1].props.children[0]) // ul 
+      assertHasUniqueKey(component.ParsedChildren[1].props.children[0].props.children[0]) // li #1
+      assertHasUniqueKey(component.ParsedChildren[1].props.children[0].props.children[1]) // li #2
+      assertHasUniqueKey(component.ParsedChildren[1].props.children[1]) // p
+    })
+  })
 })
